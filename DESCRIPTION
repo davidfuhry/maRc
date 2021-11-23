@@ -1,11 +1,13 @@
 Package: maRc
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Methods To Access Marc Files
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors@R: c(
+  person("David", "Fuhry", email = "david.fuhry@uni-leipzig.de", role = c("aut", "cre")))
+Author: David Fuhry [aut]
+Maintainer: David Fuhry <david.fuhry@uni-leipzig.de>
+Description: This package contains methods to read marcxml files.
+    Future updates are planned to include write support as well as support for non xml marc files.
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
