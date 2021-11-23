@@ -124,7 +124,7 @@ MarcRecord <- R6::R6Class("Marc21Record",
                                   invisible(self)
                               },
                               print = function(...) {
-                                  stop("Not implemented yet")
+                                  warning("Not implemented yet")
                               }
                           ),
                           private = list(

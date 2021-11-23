@@ -13,7 +13,7 @@ MarcDatafield <- R6::R6Class("Marc21Datafield",
                                                 values = self$values)
                                  },
                                  get_values = function(codes) {
-                                     stop("Not implemented yet")
+                                     warning("Not implemented yet")
                                  },
                                  print = function(...) {
                                      cat("Marc21 Datafield:\n")
