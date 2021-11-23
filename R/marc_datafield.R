@@ -5,7 +5,7 @@ MarcDatafield <- R6::R6Class("Marc21Datafield",
                                  ind_2 = NA,
                                  codes = list(),
                                  values = list(),
-                                 as.data.frame = function() {
+                                 to_data_frame = function() {
                                      data.frame(tag = formatC(self$tag, width = 3, format = "d", flag = 0),
                                                 ind_1 = self$ind_1,
                                                 ind_2 = self$ind_2,

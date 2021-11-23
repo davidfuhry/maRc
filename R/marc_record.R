@@ -1,10 +1,37 @@
 MarcRecord <- R6::R6Class("Marc21Record",
                           public = list(
+                              namespace = NULL,
+                              type = NULL,
                               leader = NULL,
                               controlfields = list(),
                               datafields = list(),
                               get_fields = function(tag, ind_1, ind_2, simplify = FALSE) {
-                                  stop("Not implemented yet")
+                                  tag_matches <- rep(TRUE, length(self$datafields))
+                                  if (!missing(tag)) {
+                                      if (class(tag) == "character") tag <- as.numeric(tag)
+                                      tag_matches <- private$datafield_tags %in% tag
+                                  }
+
+                                  ind1_matches <- rep(TRUE, length(self$datafields))
+                                  if (!missing(ind_1)) ind1_matches <- private$datafield_ind_1 %in% ind_1
+
+                                  ind2_matches <- rep(TRUE, length(self$datafields))
+                                  if (!missing(ind_2)) ind2_matches <- private$datafield_ind_2 %in% ind_2
+
+                                  matching_datafields <- self$datafields[tag_matches & ind1_matches & ind2_matches]
+
+                                  if (simplify && length(matching_datafields) > 0) {
+                                      res <- list()
+                                      for (i in 1:length(matching_datafields)) {
+                                          frame <- matching_datafields[[i]]$to_data_frame()
+                                          frame$field_index <- i
+                                          frame <- frame[, c(6,1,2,3,4,5)]
+                                          res[[i]] <- frame
+                                      }
+                                      do.call(rbind, res)
+                                  } else {
+                                      matching_datafields
+                                  }
                               },
                               read_record = function(data) {
                                   # Right now we only support marcxml
