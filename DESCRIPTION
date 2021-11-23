@@ -11,3 +11,5 @@ Description: This package contains methods to read marcxml files.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
+Imports:
+    R6
