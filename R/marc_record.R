@@ -1,10 +1,39 @@
+#' R6 Class Representing a Marc21 record
+#'
+#' @description
+#' This is the base class used to interact with marc records
+#'
+#' @details
+#' This class provides functions for reading marc records from online or disk sources
+#' and to retrieve information from them.
+#'
+#' Currently only  MarcXML files are supported.
 MarcRecord <- R6::R6Class("Marc21Record",
                           public = list(
-                              namespace = NULL,
-                              type = NULL,
-                              leader = NULL,
+                              #' @field controlfields The control fields (00X) of the record
                               controlfields = list(),
+
+                              #' @field datafields The data fields (>= 010) of the record
                               datafields = list(),
+
+
+                                #' @description
+                                #' Retrieve data fields from this record while applying optional filtering.
+                                #'
+                                #' @param tag Optional. Tag(s) for which to filter the record, must be a vector of size >= 1 and type numeric or character
+                                #' @param ind_1 Optional. First indicator(s) for which to filter the record, must be a vector of size >= 1 and type character
+                                #' @param ind_2 Optional. Second indicator(s) for which to filter the record, must be a vector of size >= 1 and type character
+                                #' @param simplify If set to true the data fields will be coerced in to a data frame before returning, otherwise a list of \code{\link[maRc]{MarcDatafield}} will be returned
+                                #'
+                                #' @return The requested data as either a data frame or a list, depending on \code{simplify}
+                                #' @export
+                                #'
+                                #' @examples
+                                #' record <- MarcRecord$new()
+                                #' record$read_record("http://d-nb.info/gnd/11897792X/about/marcxml")
+                                #'
+                                #' # Get fields with optional filtering
+                                #' record$get_fields(tag = c(548, 550), simplify = TRUE)
                               get_fields = function(tag, ind_1, ind_2, simplify = FALSE) {
                                   tag_matches <- rep(TRUE, length(self$datafields))
                                   if (!missing(tag)) {
@@ -33,20 +62,36 @@ MarcRecord <- R6::R6Class("Marc21Record",
                                       matching_datafields
                                   }
                               },
-                              read_record = function(data) {
+
+
+
+                            #' @description
+                            #'
+                            #' Read a marc record from disk or an online source.
+                            #' Currently only marcxml is supported.
+                            #'
+                            #' @param path Path or URL of the data to read. Must be a character vector of size 1.
+                            #'
+                            #' @export
+                            #'
+                            #' @examples
+                            #' record <- MarcRecord$new()
+                            #' record$read_record("http://d-nb.info/gnd/11897792X/about/marcxml")
+                            #' record
+                              read_record = function(path) {
                                   # Right now we only support marcxml
 
-                                  if (class(data) == "character") {
+                                  if (class(path) == "character") {
                                       # We most likey got a path or an url, both of which should be finde to let xml2 handle
                                       parsed_xml <- tryCatch({
-                                          xml2::read_xml(data)
+                                          xml2::read_xml(path)
                                       }, error = function(error) {
                                           stop("Failed to parse xml from given location, as of now only MarcXML is supported.")
                                       })
-                                  } else if ("xml_document" %in% class(data)) {
-                                      parsed_xml <- data
+                                  } else if ("xml_document" %in% class(path)) {
+                                      parsed_xml <- path
                                   } else {
-                                      stop(paste0("Don't know how to process data of class ", paste(class(data), collapse = ", "), ". Giving up."))
+                                      stop(paste0("Don't know how to process data of class ", paste(class(path), collapse = ", "), ". Giving up."))
                                   }
 
                                   record_list <- xml2::as_list(parsed_xml)
@@ -63,20 +108,26 @@ MarcRecord <- R6::R6Class("Marc21Record",
 
                                   # We don't do more with the leader right now though that might change
 
-                                  self$leader = record$leader[[1]]
+                                  private$leader <- record$leader[[1]]
+
+                                  private$namespace <- xml2::xml_attr(parsed_xml, "xmlns")
+
+                                  private$type <- xml2::xml_attr(parsed_xml, "type")
 
                                   # Now onto parsing the control fields
 
 
                                   controlfields <- record[names(record) == "controlfield"]
 
-                                  control_fields <- character()
+                                  control_fields <- list()
 
                                   for (field in controlfields) {
-                                      value <- field[[1]]
-                                      names(value) <- attr(field, "tag")
-                                      control_fields <- c(control_fields, value)
+                                      c_value <- field[[1]]
+                                      c_name <- attr(field, "tag")
+                                      control_fields[c_name] <- c_value
                                   }
+
+                                  self$controlfields <- control_fields
 
                                   # Parse the data fields
 
@@ -123,11 +174,28 @@ MarcRecord <- R6::R6Class("Marc21Record",
 
                                   invisible(self)
                               },
+
+
+
+                            #' @description
+                            #'
+                            #' Print method for a marc record
+                            #'
+                            #' @export
                               print = function(...) {
-                                  stop("Not implemented yet")
+                                  cat("MarcRecord with:\n")
+                                  cat(paste0("   ", length(self$controlfields), " control fields\n"))
+                                  cat(paste0("   ", length(self$datafields), " data fields"))
                               }
                           ),
                           private = list(
+                              # XML namespace of the record
+                              namespace = NULL,
+                              # Type of the record
+                              type = NULL,
+                              # Unparsed leader
+                              leader = NULL,
+                              # Indices used for faster operations than on the actual data fields
                               datafield_tags = NULL,
                               datafield_ind_1 = NULL,
                               datafield_ind_2 = NULL

@@ -8,6 +8,10 @@ Author: David Fuhry [aut]
 Maintainer: David Fuhry <david.fuhry@uni-leipzig.de>
 Description: This package contains methods to read marcxml files.
     Future updates are planned to include write support as well as support for non xml marc files.
-License: GPL-2
+Imports:
+    R6,
+    xml2
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.1.2
