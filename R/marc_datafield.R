@@ -1,137 +1,135 @@
-#' R6 Class Representing a Marc21 data field
+new_marcdatafield <- function(tag = numeric(), ind_1 = character(), ind_2 = character(), codes = c(), values = c()) {
+  stopifnot(is.numeric(tag))
+  stopifnot(is.character(ind_1))
+  stopifnot(is.character(ind_2))
+  stopifnot(is.vector(codes))
+  stopifnot(is.vector(values))
+
+  obj <- list(
+    tag = tag,
+    ind_1 = ind_1,
+    ind_2 = ind_2,
+    codes = codes,
+    values = values
+  )
+
+  class(obj) <- "marcdatafield"
+  obj
+}
+
+validate_marcdatafield <- function(obj) {
+  if (identical(obj$tag, numeric())) {
+    stop("Tag must be provided", call. = FALSE)
+  }
+
+  # We limit checking of tags to a general range instead of hard lists
+  # as various sources use tags in non standard ways
+  if (!(obj$tag > 0 & obj$tag < 900 & obj$tag %% 1 == 0)) {
+    stop("Datafield tag must be whole number between 1 and 899", call. = FALSE)
+  }
+
+  if (!grepl("^[a-z0-9 ]{1}$", obj$ind_1)) {
+    stop("Indicator 1 must be any lowercase ascii letter, number or a blank space", call. = FALSE)
+  }
+
+  if (!grepl("^[a-z0-9 ]{1}$", obj$ind_2)) {
+    stop("Indicator 2 must be any lowercase ascii letter, number or a blank space", call. = FALSE)
+  }
+
+  if (length(obj$codes) != length(obj$values)) {
+    stop("There need to be exactly as many subfield codes as values", call. = FALSE)
+  }
+
+  if (!all(grepl("^[a-z0-9]{1}$", obj$codes))) {
+    stop("Each subfield code must be exactly one letter or number", call. = FALSE)
+  }
+
+  obj
+}
+
+marcdatafield <- function(tag = numeric(), ind_1 = character(), ind_2 = character(), codes = c(), values = c()) {
+  tag = as.numeric(tag)
+  ind_1 = as.character(ind_1)
+  ind_2 = as.character(ind_2)
+  codes = as.character(codes)
+  values = as.character(values)
+  validate_marcdatafield(new_marcdatafield(tag, ind_1, ind_2, codes, values))
+}
+
+
+#' Simplifie Marc Datafield to a Data.frame
 #'
-#' @description
-#' This is the base class used to store and interact with marc data fields
+#' @param x Marcdatafield object to coerce into a data.frame
+#' @param ... Additional arguments. Will be ignored.
 #'
-#' @details
-#' This class provides the base functionality for storing marc data, as well as providing methods
-#' to retrieve that data and convert it into other formats like data.frames
-MarcDatafield <- R6::R6Class("Marc21Datafield",
-                             public = list(
+#' @return All values from the provided object in a data.frame, one row per code-value pair
+#'
+#' @export as.data.frame.marcdatafield
+#' @export
+as.data.frame.marcdatafield <- function(x, ...) {
+  data.frame(tag = formatC(x$tag, width = 3, format = "d", flag = 0),
+             ind_1 = x$ind_1,
+             ind_2 = x$ind_2,
+             code = x$codes,
+             value = x$values)
+}
 
-                                 #' @field tag Marc tag of the data field
-                                 tag = NA,
-
-                                 #' @field ind_1 First indictator of the data field
-                                 ind_1 = NA,
-
-                                 #' @field ind_2 Second indictator of the data field
-                                 ind_2 = NA,
-
-                                 #' @field codes Subfield codes in this data field
-                                 codes = list(),
-
-                                 #' @field values Subfield values of this data field
-                                 values = list(),
-
-                                 #' @description
-                                 #'
-                                 #' Simplifies this data field by coercing it into a data frame.
-                                 #'
-                                 #' @return A data frame containing the contents of this data field
-                                 #' @export
-                                 #'
-                                 #' @examples
-                                 #' record <- MarcRecord$new()
-                                 #' record$read_record("http://d-nb.info/gnd/11897792X/about/marcxml")
-                                 #'
-                                 #' data_field <- record$get_fields(tag = "550")[[1]]
-                                 #' data_field$to_data_frame()
-                                 to_data_frame = function() {
-                                     data.frame(tag = formatC(self$tag, width = 3, format = "d", flag = 0),
-                                                ind_1 = self$ind_1,
-                                                ind_2 = self$ind_2,
-                                                code = self$codes,
-                                                values = self$values)
-                                 },
-
-                                 #' @description
-                                 #'
-                                 #' Retrieves values for one or more codes from the data field
-                                 #'
-                                 #' @param codes The code or codes for which to retreive values. Must be a vector of size >= 1 and type character
-                                 #'
-                                 #' @return Character vector containing the requested values if there are any, NA otherwise
-                                 #' @export
-                                 #'
-                                 #' @examples
-                                 #' record <- MarcRecord$new()
-                                 #' record$read_record("http://d-nb.info/gnd/11897792X/about/marcxml")
-                                 #'
-                                 #' data_field <- record$get_fields(tag = "550")[[1]]
-                                 #' data_field$get_values(c("i", "a"))
-                                 get_values = function(codes) {
-                                     values <- self$values[self$codes %in% codes]
-                                     if (identical(values, character(0))) {
-                                         warning("No values found for the given codes")
-                                         NA
-                                     } else {
-                                         values
-                                     }
-                                 },
-
-                                 #' @description
-                                 #'
-                                 #' Print method for a marc data field
-                                 #'
-                                 #' @export
-                                 print = function(...) {
-                                     cat("Marc21 Datafield:\n")
-                                     cat("  tag: ", formatC(self$tag, width = 3, format = "d", flag = 0), "\n", sep = "")
-                                     cat("  ind_1: ", self$ind_1, "\n", sep = "")
-                                     cat("  ind_2: ", self$ind_2, "\n", sep = "")
-                                     if (length(self$codes) > 0) {
-                                         cat("Data:\n")
-                                         for (i in 1:length(self$codes)) {
-                                             cat("  ", self$codes[i], ": ", self$values[i], "\n", sep = "")
-                                         }
-                                     } else {
-                                         cat("No data.")
-                                     }
-                                     invisible(self)
-                                 },
+#' Print Marc Datafield
+#'
+#' @param x Marcdatafield object to print
+#' @param ... Additional arguments. Will be ignored.
+#'
+#' @export print.marcdatafield
+#' @export
+print.marcdatafield <- function(x, ...) {
+  cat("Marc21 Datafield:\n")
+  cat("  tag: ", formatC(x$tag, width = 3, format = "d", flag = 0), "\n", sep = "")
+  cat("  ind_1: ", x$ind_1, "\n", sep = "")
+  cat("  ind_2: ", x$ind_2, "\n", sep = "")
+  if (length(x$codes) > 0) {
+    cat("Data:\n")
+    for (i in 1:length(x$codes)) {
+      cat("  ", x$codes[i], ": ", x$values[i], "\n", sep = "")
+    }
+  } else {
+    cat("No data.")
+  }
+}
 
 
-                                 #' @description
-                                 #'
-                                 #' Constructor method for a marc data field.
-                                 #'
-                                 #' @param tag Optional. The tag of the data field.
-                                 #' @param ind_1 Optional. First indicator of the data field.
-                                 #' @param ind_2 Optional. Second indicator of the data field.
-                                 #' @param codes Optional. Data codes of the data field.
-                                 #' @param values Optional. Data values of the data field.
-                                 #'
-                                 #' @export
-                                 #'
-                                 #' @examples
-                                 #' field <- MarcDatafield$new(tag = 550,
-                                 #'    ind_1 = " ",
-                                 #'    ind_2 = " ",
-                                 #'    codes = c("0", "a"),
-                                 #'    values = c("A value", "Another value"))
-                                 #' field
-                                 initialize = function(tag, ind_1, ind_2, codes, values) {
-                                     if (!missing(tag)) {
-                                         self$tag = tag
-                                     }
+#' Get Values from Marc Datafield
+#'
+#' @param .data A marcdatafield object or a list of marcdatafield objects
+#' @param codes One or multiple codes for which to retrieve the values
+#' @param include_code If true the returned values will be named with their original code
+#'
+#' @return Either a vector of the matched values or a list of those vectors, depending on input. NA if no codes were matched.
+#' @export
+get_field_values <- function(.data, codes, include_code = FALSE) {
+  if (class(.data) == "marcdatafield") {
+    return(get_marcdatafield_values(.data, codes, include_code))
+  }
 
-                                     if (!missing(ind_1)) {
-                                         self$ind_1 = ind_1
-                                     }
+  if (class(.data) == "list" & all(sapply(.data, class) == "marcdatafield")) {
+    values <- lapply(.data, get_marcdatafield_values, codes = codes, include_code)
+    names(values) <- sapply(.data, "[[", "tag")
+    return(values)
+  }
 
-                                     if (!missing(ind_2)) {
-                                         self$ind_2 = ind_2
-                                     }
+  stop(".data needs to be an marcdatafield or a list of marcdatafields")
+}
 
-                                     if (!missing(codes) && !missing(values)) {
-                                         if (length(codes) != length(values)) {
-                                             warning("codes and values must be of the same length. This record may be broken.")
-                                         }
-                                         self$codes = codes
-                                         self$values = values
-                                     }
-                                 }
-                             )
+get_marcdatafield_values <- function(field, codes, include_code) {
+  values <- field$values[field$codes %in% codes]
+  if (identical(values, character(0))) {
+    warning("No values exist for the given codes")
+    NA
+  } else {
+    if (include_code) {
+      names(values) <- field$codes[field$codes %in% codes]
+    }
+    values
+  }
+}
 
-)
+

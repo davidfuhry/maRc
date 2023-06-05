@@ -1,17 +1,17 @@
 Package: maRc
-Type: Package
-Title: Methods To Access Marc Files
-Version: 0.1.0
-Authors@R: c(
-  person("David", "Fuhry", email = "david.fuhry@uni-leipzig.de", role = c("aut", "cre")))
+Title: Methods to Read and Write MarcXML
+Version: 0.0.0.9000
+Authors@R: 
+    person("David", "Fuhry", , "david.fuhry@uni-leipzig.de", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-9573-1169"))
 Author: David Fuhry [aut]
 Maintainer: David Fuhry <david.fuhry@uni-leipzig.de>
-Description: This package contains methods to read marcxml files.
-    Future updates are planned to include write support as well as support for non xml marc files.
-Imports:
-    R6,
-    xml2
+Description: This package provides methods and classes to interact with MarcXML files.
+  It supports reading, manipulating, retrieving data from and writing MarcXML.
 License: GPL (>= 2)
 Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.1.2
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
