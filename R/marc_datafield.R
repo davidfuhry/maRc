@@ -24,8 +24,8 @@ validate_marcdatafield <- function(obj) {
 
   # We limit checking of tags to a general range instead of hard lists
   # as various sources use tags in non standard ways
-  if (!(obj$tag > 0 & obj$tag < 900 & obj$tag %% 1 == 0)) {
-    stop("Datafield tag must be whole number between 1 and 899", call. = FALSE)
+  if (!(obj$tag > 0 & obj$tag < 999 & obj$tag %% 1 == 0)) {
+    stop("Datafield tag must be whole number between 1 and 999", call. = FALSE)
   }
 
   if (!grepl("^[a-z0-9 ]{1}$", obj$ind_1)) {
@@ -40,7 +40,7 @@ validate_marcdatafield <- function(obj) {
     stop("There need to be exactly as many subfield codes as values", call. = FALSE)
   }
 
-  if (!all(grepl("^[a-z0-9]{1}$", obj$codes))) {
+  if (!all(grepl("^[A-z0-9]{1}$", obj$codes))) {
     stop("Each subfield code must be exactly one letter or number", call. = FALSE)
   }
 

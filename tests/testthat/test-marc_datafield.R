@@ -33,8 +33,8 @@ test_that("datafield_creation_casts_types_correctly", {
 
 test_that("datafield_validation_works", {
   expect_error(marcdatafield(), "Tag must be provided")
-  expect_error(marcdatafield(tag = 1000, ind_1 = "a", ind_2 = "b", codes = c("a"), values = c("some value")), "Datafield tag must be whole number between 1 and 899")
-  expect_error(marcdatafield(tag = 12.7, ind_1 = "a", ind_2 = "b", codes = c("a"), values = c("some value")), "Datafield tag must be whole number between 1 and 899")
+  expect_error(marcdatafield(tag = 1000, ind_1 = "a", ind_2 = "b", codes = c("a"), values = c("some value")), "Datafield tag must be whole number between 1 and 999")
+  expect_error(marcdatafield(tag = 12.7, ind_1 = "a", ind_2 = "b", codes = c("a"), values = c("some value")), "Datafield tag must be whole number between 1 and 999")
   expect_error(marcdatafield(tag = 100, ind_1 = "", ind_2 = "b", codes = c("a"), values = c("some value")), "Indicator 1 must be any lowercase ascii letter, number or a blank space")
   expect_error(marcdatafield(tag = 100, ind_1 = "abc", ind_2 = "b", codes = c("a"), values = c("some value")), "Indicator 1 must be any lowercase ascii letter, number or a blank space")
   expect_error(marcdatafield(tag = 100, ind_1 = "ä", ind_2 = "b", codes = c("a"), values = c("some value")), "Indicator 1 must be any lowercase ascii letter, number or a blank space")
